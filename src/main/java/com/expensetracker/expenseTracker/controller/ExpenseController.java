@@ -25,9 +25,6 @@ public class ExpenseController {
 
     @PostMapping
     public Expense addExpense(@AuthenticationPrincipal UserDetails user, @Valid @RequestBody ExpenseDto expense) {
-        System.out.println("USER: " + user);
-        System.out.println("EXPENSE: " + expense);
-
         return service.addExpense(user.getUsername(), expense);
 
     }
@@ -36,13 +33,6 @@ public class ExpenseController {
     public List<Expense> getExpenses(@AuthenticationPrincipal UserDetails  user) {
         return service.getExpense(user.getUsername());
 
-    }
-
-
-    @GetMapping("/test")
-    public String test() {
-        System.out.println("HIT");
-        return "OK";
     }
 
 }

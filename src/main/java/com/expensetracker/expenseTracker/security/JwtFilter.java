@@ -76,6 +76,10 @@ public class JwtFilter extends OncePerRequestFilter {
                 }
             } catch (Exception e) {
                 log.error(">>> Token processing error: {}", e.getMessage(), e);
+                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                response.setContentType("application/json");
+                response.getWriter().write("{\"error\": \"Invalid or expired token: " + e.getMessage() + "\"}");
+                return;
             }
         } else {
             log.warn(">>> No Bearer token found in request to: {}", request.getServletPath());
