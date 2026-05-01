@@ -3,6 +3,8 @@ package com.expensetracker.expenseTracker.controller;
 import com.expensetracker.expenseTracker.model.User;
 import com.expensetracker.expenseTracker.repository.userRepository;
 import com.expensetracker.expenseTracker.service.JwtService;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -14,15 +16,18 @@ import org.springframework.web.bind.annotation.RestController;
 public class AuthController {
 
     private final userRepository userRepo;
-
     private final PasswordEncoder passwordEncoder;
-
     private final JwtService jwtService;
+    private final AuthenticationManager authenticationManager;
 
-    public AuthController(userRepository userRepo, PasswordEncoder passwordEncoder, JwtService jwtService) {
+    public AuthController(userRepository userRepo,
+                          PasswordEncoder passwordEncoder,
+                          JwtService jwtService,
+                          AuthenticationManager authenticationManager) {
         this.userRepo = userRepo;
         this.passwordEncoder = passwordEncoder;
         this.jwtService = jwtService;
+        this.authenticationManager = authenticationManager;
     }
 
     @PostMapping("/register")
@@ -34,15 +39,14 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public String login(@RequestBody User request){
-        User user = userRepo.findByUsername(request.getUsername())
-                .orElseThrow(() -> new RuntimeException("Invalid username"));
-
-        if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
-            throw new RuntimeException("Invalid password");
-        }
-
-        return jwtService.generateToken(user.getUsername());
+    public String login(@RequestBody User request) {
+        authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(
+                        request.getUsername(),
+                        request.getPassword()
+                )
+        );
+        return jwtService.generateToken(request.getUsername());
     }
-    }
+}
 

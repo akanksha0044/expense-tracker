@@ -2,6 +2,7 @@ package com.expensetracker.expenseTracker.controller;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -13,7 +14,7 @@ import java.util.Map;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-
+    // Catches @Valid validation failures and shows which field failed
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<Map<String, String>> handleValidation(MethodArgumentNotValidException ex) {
         Map<String, String> errors = new HashMap<>();
@@ -22,7 +23,13 @@ public class GlobalExceptionHandler {
         return ResponseEntity.badRequest().body(errors);
     }
 
+    // Catches bad credentials from AuthenticationManager — returns 401 instead of 500
+    @ExceptionHandler(AuthenticationException.class)
+    public ResponseEntity<String> handleAuthException(AuthenticationException ex) {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid username or password");
+    }
 
+    // Catches malformed JSON / wrong Content-Type
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseEntity<String> handleUnreadable(HttpMessageNotReadableException ex) {
         ex.printStackTrace();
